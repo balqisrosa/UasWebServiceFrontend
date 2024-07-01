@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Form</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="form-container">
+        <p class="title">Login</p>
+        <form class="form" id="loginForm">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username" placeholder="">
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" placeholder="">
+                <div class="forgot">
+                    <a href="#">Forgot Password ?</a>
+                </div>
+            </div>
+            <button type="submit" class="sign">Sign in</button>
+        </form>
+        <div class="social-message">
+            <div class="line"></div>
+            <p class="message">Login dengan akun sosial</p>
+            <div class="line"></div>
+        </div>
+        <div class="social-icons">
+            <!-- Tombol login sosial -->
+        </div>
+        <script>
+            document.getElementById('loginForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+        
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+        
+                fetch('https://130.162.195.228/mhs714220006/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: username, password: password })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Respon jaringan tidak oke: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.token) {
+                        localStorage.setItem('authToken', data.token);
+                        alert('Login berhasil');
+                        window.location.href = "./product.html";
+                    } else {
+                        alert('Login gagal: Username atau password salah');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan: ' + error.message);
+                });
+            });
+        </script>
+        <p class="signup">Belum punya akun?
+            <a href="signup.html" class="">Daftar</a>
+        </p>
+    </div>
+</body>
+</html>
