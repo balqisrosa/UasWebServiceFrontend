@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f3f3f3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        .form-container h2 {
+            color: #A39D7A;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            background-color: #A39D7A;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #938C6B;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Edit Product</h2>
+        <form id="productForm">
+            <input type="hidden" id="productId" name="productId"> <!-- Hidden input for Product ID -->
+            <div class="input-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="input-group">
+                <label for="price">Price</label>
+                <input type="number" id="price" name="price" required>
+            </div>
+            <div class="input-group">
+                <label for="stock">Stock</label>
+                <input type="number" id="stock" name="stock" required>
+            </div>
+            <div class="input-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" required></textarea>
+            </div>
+            <button type="submit" class="btn">Update Product</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const productForm = document.getElementById('productForm');
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id'); // Get Product ID from URL query parameter
+
+            if (!productId) {
+                console.error('Product ID not found in URL.');
+                Swal.fire('Error!', 'Product ID not found in URL.', 'error');
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+
+            // Fetch product data by ID
+            fetch(`https://130.162.195.228/mhs714220006/products/${productId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch product data');
+                }
+                return response.json();
+            })
+            .then(product => {
+                // Fill form fields with product data
+                document.getElementById('productId').value = product.id;
+                document.getElementById('name').value = product.name;
+                document.getElementById('price').value = product.price;
+                document.getElementById('stock').value = product.stock;
+                document.getElementById('description').value = product.description;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error!', `Failed to fetch product data: ${error.message}`, 'error');
+            });
+
+            // Handle form submission
+            productForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const name = document.getElementById('name').value;
+                const price = document.getElementById('price').value;
+                const stock = document.getElementById('stock').value;
+                const description = document.getElementById('description').value;
+
+                const requestBody = {
+                    name: name,
+                    price: parseFloat(price),
+                    stock: parseInt(stock),
+                    description: description
+                };
+
+                fetch(`https://130.162.195.228/mhs714220006/products/${productId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestBody)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to update product');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Product updated successfully',
+                        text: data.message,
+                        showConfirmButton: true
+                    }).then(() => {
+                        window.location.href = 'product.html'; // Redirect to product list page
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed to update product',
+                        text: error.message
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

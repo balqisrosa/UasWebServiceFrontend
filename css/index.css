@@ -52,7 +52,7 @@ body {
   
   .sign {
     padding: 10px;
-    background-color: #28a745;
+    background-color: #806154;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -62,7 +62,7 @@ body {
   }
   
   .sign:hover {
-    background-color: #218838;
+    background-color: #806154;
   }
   
   .social-message {
@@ -106,7 +106,7 @@ body {
   }
   
   .signup a {
-    color: #007bff;
+    color: #806154;
     text-decoration: none;
   }
   

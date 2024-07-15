@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Order</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f3f3f3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        .form-container h2 {
+            color: #A39D7A;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            background-color: #A39D7A;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #938C6B;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Edit Order</h2>
+        <form id="orderForm">
+            <input type="hidden" id="orderId" name="orderId"> <!-- Hidden input for Order ID -->
+            <div class="input-group">
+                <label for="userId">User ID</label>
+                <input type="text" id="userId" name="userId" required>
+            </div>
+            <div class="input-group">
+                <label for="productId">Product ID</label>
+                <input type="text" id="productId" name="productId" required>
+            </div>
+            <div class="input-group">
+                <label for="amount">Amount</label>
+                <input type="number" id="amount" name="amount" required>
+            </div>
+            <div class="input-group">
+                <label for="price">Price</label>
+                <input type="number" id="price" name="price" required>
+            </div>
+            <div class="input-group">
+                <label for="total">Total</label>
+                <input type="number" id="total" name="total" required>
+            </div>
+            <div class="input-group">
+                <label for="status">Status</label>
+                <input type="text" id="status" name="status" required>
+            </div>
+            <button type="submit" class="btn">Update Order</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const orderForm = document.getElementById('orderForm');
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('id'); // Get Order ID from URL query parameter
+
+            if (!orderId) {
+                console.error('Order ID not found in URL.');
+                Swal.fire('Error!', 'Order ID not found in URL.', 'error');
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+
+            // Fetch order data by ID
+            fetch(`https://130.162.195.228/mhs714220006/orders/${orderId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch order data');
+                }
+                return response.json();
+            })
+            .then(order => {
+                // Fill form fields with order data
+                document.getElementById('orderId').value = order.id;
+                document.getElementById('userId').value = order.user_id;
+                document.getElementById('productId').value = order.product_id;
+                document.getElementById('amount').value = order.amount;
+                document.getElementById('price').value = order.price;
+                document.getElementById('total').value = order.total;
+                document.getElementById('status').value = order.status;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error!', `Failed to fetch order data: ${error.message}`, 'error');
+            });
+
+            // Handle form submission
+            orderForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const userId = document.getElementById('userId').value;
+                const productId = document.getElementById('productId').value;
+                const amount = document.getElementById('amount').value;
+                const price = document.getElementById('price').value;
+                const total = document.getElementById('total').value;
+                const status = document.getElementById('status').value;
+
+                const requestBody = {
+                    user_id: userId,
+                    product_id: productId,
+                    amount: parseInt(amount),
+                    price: parseFloat(price),
+                    total: parseFloat(total),
+                    status: status
+                };
+
+                fetch(`https://130.162.195.228/mhs714220006/orders/${orderId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestBody)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to update order');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Order updated successfully',
+                        text: data.message,
+                        showConfirmButton: true
+                    }).then(() => {
+                        window.location.href = 'order.html'; // Redirect to order list page
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed to update order',
+                        text: error.message
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
