@@ -98,6 +98,7 @@
             margin-right: 0.5rem;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 </head>
 <body>
     <div class="sidebar">
@@ -129,8 +130,11 @@
     </div>
 
     <script>
+        const apiUrl = 'https://130.162.195.228/mhs714220006/orders';
+        const token = 'your-auth-token'; // Ganti dengan token sebenarnya
+
         document.addEventListener("DOMContentLoaded", function() {
-            fetch("https://130.162.195.228/mhs714220006/orders")
+            fetch(apiUrl)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error("Network response was not ok");
@@ -152,7 +156,7 @@
                             <td>${order.status}</td>
                             <td>
                                 <a href="editOrder.html?id=${order.order_id}" class="btn action-btn">Edit</a>
-                                <button class="btn action-btn" onclick="deleteOrder(${order.order_id})">Delete</button>
+                                <button class="btn action-btn" data-id="${order.order_id}" onclick="deleteOrder(${order.order_id})">Delete</button>
                             </td>
                         `;
                     });
@@ -162,25 +166,42 @@
                 });
         });
 
+        // Function to delete an order
         function deleteOrder(orderId) {
-            if (confirm("Are you sure you want to delete this order?")) {
-                fetch(`https://130.162.195.228/mhs714220006/orders/${orderId}`, {
-                    method: 'DELETE'
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("Network response was not ok");
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    alert(data.message);
-                    location.reload();
-                })
-                .catch(error => {
-                    console.error("There has been a problem with your fetch operation:", error);
-                });
-            }
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`${apiUrl}/${orderId}`, {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => {throw new Error(err.message)});
+                        }
+                        return response.json();
+                    })
+                    .then(() => {
+                        Swal.fire("Deleted!", "Order has been deleted.", "success");
+                        // Remove the order row from the table
+                        document.querySelector(`button[data-id="${orderId}"]`).closest("tr").remove();
+                    })
+                    .catch(error => {
+                        Swal.fire("Error!", error.message, "error");
+                        console.error("There has been a problem with your fetch operation:", error);
+                    });
+                }
+            });
         }
     </script>
 </body>

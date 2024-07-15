@@ -41,7 +41,7 @@
         }
 
         .input-group input,
-        .input-group select {
+        .input-group textarea {
             width: 100%;
             padding: 0.5rem;
             border: 1px solid #ccc;
@@ -69,39 +69,29 @@
     <div class="form-container">
         <h2>Add Order</h2>
         <form id="orderForm">
-            <!-- User ID (Manual Entry) -->
             <div class="input-group">
                 <label for="userId">User ID</label>
-                <input type="text" id="userId" name="userId" required>
+                <input type="number" id="userId" name="userId" required>
             </div>
-            <!-- Product ID (Manual Entry) -->
             <div class="input-group">
                 <label for="productId">Product ID</label>
-                <input type="text" id="productId" name="productId" required>
+                <input type="number" id="productId" name="productId" required>
             </div>
-            <!-- Amount (Manual Entry) -->
             <div class="input-group">
                 <label for="amount">Amount</label>
                 <input type="number" id="amount" name="amount" required>
             </div>
-            <!-- Price (Manual Entry) -->
             <div class="input-group">
                 <label for="price">Price</label>
                 <input type="number" id="price" name="price" step="0.01" required>
             </div>
-            <!-- Total (Manual Entry) -->
             <div class="input-group">
                 <label for="total">Total</label>
                 <input type="number" id="total" name="total" step="0.01" required>
             </div>
-            <!-- Status (Manual Entry) -->
             <div class="input-group">
                 <label for="status">Status</label>
-                <select id="status" name="status" required>
-                    <option value="pending">Pending</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
+                <input type="text" id="status" name="status" required>
             </div>
             <button type="submit" class="btn">Add Order</button>
         </form>
@@ -112,27 +102,36 @@
         document.addEventListener('DOMContentLoaded', function() {
             const orderForm = document.getElementById('orderForm');
 
-            // Event listener for form submission
             orderForm.addEventListener('submit', function(event) {
                 event.preventDefault();
 
-                const userId = document.getElementById('userId').value;
-                const productId = document.getElementById('productId').value;
-                const amount = document.getElementById('amount').value;
-                const price = document.getElementById('price').value;
-                const total = document.getElementById('total').value;
+                const userId = parseInt(document.getElementById('userId').value);
+                const productId = parseInt(document.getElementById('productId').value);
+                const amount = parseInt(document.getElementById('amount').value);
+                const price = parseFloat(document.getElementById('price').value);
+                const total = parseFloat(document.getElementById('total').value);
                 const status = document.getElementById('status').value;
 
                 const token = localStorage.getItem('token');
+                if (!token) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed to add order',
+                        text: 'Token not available'
+                    });
+                    return;
+                }
 
                 const requestBody = {
-                    user_id: parseInt(userId),
+                    user_id: userId,
                     product_id: productId,
-                    amount: parseInt(amount),
-                    price: parseFloat(price),
-                    total: parseFloat(total),
+                    amount: amount,
+                    price: price,
+                    total: total,
                     status: status
                 };
+
+                console.log('Request Body:', requestBody);
 
                 fetch('https://130.162.195.228/mhs714220006/orders', {
                     method: 'POST',
@@ -144,7 +143,10 @@
                 })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Failed to add order');
+                        return response.text().then(text => {
+                            console.error('Response Text:', text);
+                            throw new Error(text || 'Failed to add order');
+                        });
                     }
                     return response.json();
                 })
@@ -155,7 +157,7 @@
                         text: data.message,
                         showConfirmButton: true
                     }).then(() => {
-                        window.location.href = 'orders.html'; // Redirect to order list page
+                        window.location.href = 'order.html'; // Redirect to order list page
                     });
 
                     orderForm.reset();
@@ -165,11 +167,10 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Failed to add order',
-                        text: error.message
+                        text: error.message || 'An error occurred while processing the request'
                     });
                 });
             });
-
         });
     </script>
 </body>
